@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#eef1f8">
+  <title>认知绑定 · 深度问卷 v4.2</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Noto+Serif+SC:wght@400;600;700&display=swap');
+
+    :root {
+      --bg: #eef1f8;
+      --surface: #fff;
+      --ink: #141824;
+      --muted: #5c6370;
+      --line: #d8dde8;
+      --brand: #3d5afe;
+      --brand-dim: rgba(61,90,254,.12);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      min-height: 100dvh;
+      font-family: 'Noto Serif SC', serif;
+      background: var(--bg);
+      color: var(--ink);
+      -webkit-tap-highlight-color: transparent;
+      overflow-x: hidden;
+    }
+
+    /* —— 二周目主题 —— */
+    body.run2 {
+      --bg: #050508;
+      --surface: #0c0c12;
+      --ink: #d4d4dc;
+      --muted: #6a6a78;
+      --line: #1f1f2e;
+      --brand: #c41e3a;
+      --brand-dim: rgba(196,30,58,.15);
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    body.run2 .hero-title { letter-spacing: .2em; text-transform: uppercase; }
+    body.run2 .crt::after {
+      content: '';
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(0deg, transparent 0, transparent 2px, rgba(0,0,0,.15) 3px);
+      z-index: 9990;
+    }
+
+    #root {
+      max-width: 560px;
+      margin: 0 auto;
+      padding: max(12px, env(safe-area-inset-top)) 18px max(32px, env(safe-area-inset-bottom));
+    }
+
+    .top-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 10px;
+      color: var(--muted);
+      font-family: 'IBM Plex Mono', monospace;
+      margin-bottom: 10px;
+      letter-spacing: .04em;
+    }
+
+    .meter {
+      height: 3px;
+      background: var(--line);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-bottom: 22px;
+    }
+    #meter-fill {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, var(--brand), #7c4dff);
+      transition: width .5s cubic-bezier(.4,0,.2,1);
+    }
+    body.run2 #meter-fill { background: linear-gradient(90deg, #600, #ff0040); }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 26px 22px 22px;
+      box-shadow: 0 12px 40px rgba(20,24,36,.06);
+      position: relative;
+    }
+    body.run2 .panel {
+      box-shadow: 0 0 60px rgba(196,30,58,.08);
+      border-color: #2a1520;
+    }
+
+    .chapter {
+      font-size: 11px;
+      color: var(--brand);
+      font-family: 'IBM Plex Mono', monospace;
+      margin-bottom: 8px;
+    }
+
+    h1.hero-title {
+      font-size: clamp(1.25rem, 4.5vw, 1.55rem);
+      line-height: 1.45;
+      margin-bottom: 10px;
+    }
+
+    .lead {
+      font-size: .88rem;
+      color: var(--muted);
+      line-height: 1.75;
+      margin-bottom: 18px;
+    }
+
+    label.field-label {
+      display: block;
+      font-size: .85rem;
+      margin: 16px 0 8px;
+    }
+
+    input[type=text], input[type=number], textarea, select {
+      width: 100%;
+      padding: 13px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      font-size: 16px;
+      font-family: inherit;
+      background: var(--surface);
+      color: var(--ink);
+    }
+    textarea { resize: vertical; min-height: 88px; }
+
+    .choice-grid { display: flex; flex-direction: column; gap: 10px; }
+    .choice {
+      text-align: left;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 2px solid var(--line);
+      background: transparent;
+      color: inherit;
+      font: inherit;
+      font-size: .92rem;
+      cursor: pointer;
+      transition: border-color .2s, background .2s, transform .12s;
+    }
+    .choice:active { transform: scale(.985); }
+    .choice.on { border-color: var(--brand); background: var(--brand-dim); }
+
+    .choice-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    @media (max-width: 380px) { .choice-row { grid-template-columns: 1fr; } }
+
+    .slider-wrap { margin: 20px 0 8px; }
+    input[type=range] {
+      width: 100%;
+      accent-color: var(--brand);
+    }
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: .72rem;
+      color: var(--muted);
+      margin-top: 6px;
+    }
+
+    .card-deck {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+    .tarot {
+      aspect-ratio: 2/3;
+      border-radius: 10px;
+      border: 2px solid var(--line);
+      background: linear-gradient(145deg, #f0f3ff, #fff);
+      font-size: .7rem;
+      padding: 8px;
+      cursor: pointer;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      text-align: center;
+      color: var(--muted);
+      transition: all .25s;
+    }
+    body.run2 .tarot { background: linear-gradient(145deg, #120810, #0a0a10); }
+    .tarot.flipped {
+      border-color: var(--brand);
+      color: var(--ink);
+      font-size: .85rem;
+      align-items: center;
+      font-weight: 600;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 26px;
+    }
+    .btn {
+      flex: 1;
+      min-width: 130px;
+      padding: 14px 18px;
+      border-radius: 14px;
+      border: none;
+      font-size: .95rem;
+      font-family: inherit;
+      cursor: pointer;
+    }
+    .btn-main { background: var(--brand); color: #fff; }
+    .btn-soft {
+      background: transparent;
+      border: 1px solid var(--line);
+      color: inherit;
+    }
+
+    .hint-line {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: .72rem;
+      color: var(--muted);
+      margin-top: 14px;
+      min-height: 1.2em;
+      opacity: 0;
+      transition: opacity .4s;
+    }
+    .hint-line.show { opacity: 1; }
+
+    /* 全屏层 */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 20000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background: rgba(8,8,12,.92);
+    }
+    .overlay.on { display: flex; }
+
+    #splash {
+      z-index: 30000;
+      background: var(--bg);
+      flex-direction: column;
+      text-align: center;
+    }
+    #splash.on { display: flex; }
+
+    .splash-badge {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 10px;
+      letter-spacing: .25em;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .splash-warn {
+      max-width: 340px;
+      font-size: .78rem;
+      color: #8b6914;
+      border: 1px dashed #c9a227;
+      padding: 12px;
+      border-radius: 10px;
+      margin: 16px 0 24px;
+      line-height: 1.6;
+      background: rgba(201,162,39,.08);
+    }
+
+    #jumpscare {
+      z-index: 50000;
+      background: #000;
+      pointer-events: none;
+    }
+    #jumpscare.on { display: flex; }
+    #jumpscare svg { width: 100%; height: 100%; animation: pop .15s ease-out; }
+    @keyframes pop {
+      from { transform: scale(.4); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .modal-box {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      max-width: 360px;
+      width: 100%;
+      overflow: hidden;
+    }
+    .modal-head {
+      padding: 12px 16px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 12px;
+      border-bottom: 1px solid var(--line);
+      background: rgba(0,0,0,.03);
+    }
+    body.run2 .modal-head { background: #12121a; }
+    .modal-body { padding: 16px; font-size: .88rem; line-height: 1.65; }
+    .modal-foot {
+      padding: 12px 16px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      border-top: 1px solid var(--line);
+    }
+    .modal-foot button {
+      padding: 8px 14px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    /* 结局 / 时间轴 */
+    #finale { display: none; }
+    #finale.on { display: block; }
+
+    .archive-box {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 18px;
+      margin: 20px 0;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: .78rem;
+      line-height: 1.7;
+    }
+    body.run2 .archive-box { border-color: #401828; background: rgba(196,30,58,.05); }
+
+    .teaser-ring {
+      width: 100px;
+      height: 100px;
+      margin: 24px auto;
+      border-radius: 50%;
+      border: 2px dashed var(--brand);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      text-align: center;
+      padding: 8px;
+      animation: spin 12s linear infinite;
+      color: var(--brand);
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .time-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: .72rem;
+      margin-top: 16px;
+    }
+    .time-table th, .time-table td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 6px;
+      text-align: left;
+      vertical-align: top;
+    }
+    .time-table tr.slow td { color: #c41e3a; }
+    .time-table tr.fast td { color: #2e7d32; }
+    body.run1-finale .time-table { filter: blur(4px); user-select: none; }
+    body.run1-finale .time-table.unlocked { filter: none; }
+
+    .typewriter {
+      border-left: 2px solid var(--brand);
+      padding-left: 12px;
+      min-height: 3em;
+    }
+
+    .pulse-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #2ecc71;
+      margin-right: 6px;
+      animation: pulse 1.2s infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; }
+      50% { opacity: .3; }
+    }
+
+    .decrypt-line {
+      overflow: hidden;
+      white-space: nowrap;
+      border-right: 2px solid var(--brand);
+      animation: caret 1s step-end infinite;
+    }
+    @keyframes caret { 50% { border-color: transparent; } }
+
+    .hidden { display: none !important; }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; transition: none !important; }
+    }
+  </style>
+</head>
+<body class="crt">
+  <div id="splash" class="overlay on">
+    <p class="splash-badge" id="splash-badge">COGNITIVE BINDING PROTOCOL</p>
+    <h1 class="hero-title" id="splash-title">认知绑定 · 深度问卷</h1>
+    <p class="lead" id="splash-lead" style="max-width:360px;margin:0 auto 8px;">
+      学术合作机构匿名调研。约 15–25 分钟。<br>请一次性完成，中途离开也会留下痕迹。
+    </p>
+    <p class="splash-warn" id="splash-warn">
+      含强互动、突发音效与全屏视觉。建议耳机 + 独处。<br>
+      光敏 / 严重焦虑请勿继续。
+    </p>
+    <button type="button" class="btn btn-main" id="btn-enter" style="max-width:280px;width:100%;">进入问卷</button>
+    <p style="font-size:10px;color:var(--muted);margin-top:20px;font-family:'IBM Plex Mono',monospace;" id="splash-foot"></p>
+  </div>
+
+  <div id="jumpscare" class="overlay">
+    <svg viewBox="0 0 400 500" xmlns="http://www.w3.org/2000/svg">
+      <rect fill="#000" width="400" height="500"/>
+      <text x="200" y="80" fill="#ff0033" font-size="22" text-anchor="middle" font-family="serif">你慢了</text>
+      <ellipse cx="200" cy="260" rx="150" ry="170" fill="#180808"/>
+      <ellipse cx="120" cy="220" rx="50" ry="62" fill="#fff"/>
+      <ellipse cx="280" cy="220" rx="50" ry="62" fill="#fff"/>
+      <ellipse cx="120" cy="228" rx="10" ry="32" fill="#000"/>
+      <ellipse cx="280" cy="228" rx="10" ry="32" fill="#000"/>
+      <path d="M130 360 Q200 420 270 360" fill="#500" stroke="#900"/>
+      <text x="200" y="450" fill="#faa" font-size="16" text-anchor="middle" id="scare-name">——</text>
+    </svg>
+  </div>
+
+  <div id="sys-modal" class="overlay">
+    <div class="modal-box">
+      <div class="modal-head" id="modal-title">system</div>
+      <div class="modal-body" id="modal-body"></div>
+      <div class="modal-foot">
+        <button type="button" id="modal-ok">确定</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="root" class="hidden">
+    <div class="top-meta">
+      <span id="run-label">RUN-1</span>
+      <span id="clock-label">00:00</span>
+    </div>
+    <div class="meter"><div id="meter-fill"></div></div>
+    <div class="panel" id="panel">
+      <div class="chapter" id="chapter"></div>
+      <div id="stage"></div>
+      <p class="hint-line" id="hint"></p>
+      <div class="actions">
+        <button type="button" class="btn btn-soft hidden" id="btn-prev">上一题</button>
+        <button type="button" class="btn btn-main" id="btn-next">继续</button>
+      </div>
+    </div>
+    <div id="finale"></div>
+  </div>
+
+<script>
+(function () {
+  'use strict';
+
+  const ARCHIVE_KEY = 'cbp_archive_v4';
+
+  const $ = id => document.getElementById(id);
+  const stage = $('stage');
+  const hint = $('hint');
+  const panel = $('panel');
+
+  let audioCtx;
+  function initAudio() {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+  }
+
+  function tone(f, d, type = 'sine', v = .12) {
+    if (!audioCtx) return;
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type; o.frequency.value = f;
+    g.gain.setValueAtTime(v, audioCtx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001, audioCtx.currentTime + d);
+    o.connect(g).connect(audioCtx.destination);
+    o.start(); o.stop(audioCtx.currentTime + d);
+  }
+
+  function sting() {
+    tone(70, .5, 'sawtooth', .35);
+    tone(1400, .06, 'square', .22);
+    setTimeout(() => tone(55, .4, 'sawtooth', .3), 30);
+    if (navigator.vibrate) navigator.vibrate([60, 40, 100]);
+  }
+
+  function heartbeat() {
+    tone(58, .1, 'sine', .3);
+    setTimeout(() => tone(58, .08, 'sine', .2), 170);
+  }
+
+  function scare(name) {
+    $('scare-name').textContent = name || '——';
+    $('jumpscare').classList.add('on');
+    sting();
+    setTimeout(() => $('jumpscare').classList.remove('on'), 320);
+  }
+
+  function modal(title, html) {
+    return new Promise(res => {
+      $('modal-title').textContent = title;
+      $('modal-body').innerHTML = html;
+      $('sys-modal').classList.add('on');
+      $('modal-ok').onclick = () => {
+        $('sys-modal').classList.remove('on');
+        res();
+      };
+    });
+  }
+
+  function loadArchive() {
+    try { return JSON.parse(localStorage.getItem(ARCHIVE_KEY) || 'null'); } catch { return null; }
+  }
+  function saveArchive(data) {
+    localStorage.setItem(ARCHIVE_KEY, JSON.stringify(data));
+  }
+
+  const app = {
+    mode: 'run1', // run1 | run2
+    step: 0,
+    name: '',
+    answers: {},
+    timings: [], // { id, chapter, title, ms }
+    qStart: null,
+    globalStart: null,
+    idleScare: null,
+    archive: loadArchive()
+  };
+
+  function startQuestionTimer(id, chapter, title) {
+    if (app.qStart != null) {
+      /* previous should have been closed */
+    }
+    app.qStart = performance.now();
+    app.currentQ = { id, chapter, title };
+  }
+
+  function endQuestionTimer() {
+    if (app.qStart == null || !app.currentQ) return;
+    const ms = Math.round(performance.now() - app.qStart);
+    app.timings.push({ ...app.currentQ, ms });
+    app.qStart = null;
+    app.currentQ = null;
+  }
+
+  function setHint(t) {
+    hint.textContent = t || '';
+    hint.classList.toggle('show', !!t);
+  }
+
+  function bindChoices(multi) {
+    stage.querySelectorAll('.choice').forEach(btn => {
+      btn.onclick = () => {
+        if (multi) btn.classList.toggle('on');
+        else {
+          stage.querySelectorAll('.choice').forEach(b => b.classList.remove('on'));
+          btn.classList.add('on');
+        }
+      };
+    });
+  }
+
+  function getSelected() {
+    const s = stage.querySelector('.choice.on');
+    return s ? s.dataset.v : null;
+  }
+  function getMulti() {
+    return [...stage.querySelectorAll('.choice.on')].map(b => b.dataset.v);
+  }
+
+  /* ========== 一周目题目（长） ========== */
+  const RUN1 = [
+    { id:'r1_01', ch:'序章 · 许可', title:'记录方式',
+      render() {
+        return `<h1 class="hero-title">在开始之前</h1>
+        <p class="lead">本问卷会<strong>静默记录</strong>你在每道题的停留时长，用于「决策迟疑度」研究。过程中<strong>不会</strong>展示计时，全部留到结尾。</p>
+        <div class="choice-grid">
+          <button type="button" class="choice" data-v="ok">我理解，并同意被记录用时</button>
+          <button type="button" class="choice" data-v="no">我不希望被记录</button>
+        </div>`;
+      },
+      enter() { bindChoices(false); },
+      validate() {
+        const v = getSelected();
+        if (!v) return '请选择';
+        if (v === 'no') return '此调研仅在有计时模式下开放 · 请重新选择';
+        return null;
+      }
+    },
+    { id:'r1_02', ch:'序章 · 许可', title:'称呼',
+      render() {
+        return `<h1 class="hero-title">我们该如何称呼你？</h1>
+        <p class="lead">会写进本地档案，不上传服务器。</p>
+        <label class="field-label">称呼 / 昵称</label>
+        <input type="text" id="inp-name" maxlength="24" autocomplete="nickname" placeholder="例如：小林">`;
+      },
+      validate() {
+        const n = $('inp-name').value.trim();
+        if (!n) return '需要一个称呼';
+        app.name = n;
+        return null;
+      }
+    },
+    { id:'r1_03', ch:'第一章 · 日常', title:'起床第一眼',
+      render() {
+        return `<h1 class="hero-title">${app.name}，你每天醒来第一个打开的是什么？</h1>
+        <div class="choice-grid">
+          <button type="button" class="choice" data-v="msg">消息 / 未读红点</button>
+          <button type="button" class="choice" data-v="feed">信息流</button>
+          <button type="button" class="choice" data-v="alarm">闹钟 · 再睡五分钟</button>
+          <button type="button" class="choice" data-v="void">空白天花板</button>
+        </div>`;
+      },
+      enter() { bindChoices(false); },
+      validate() {
+        const v = getSelected(); if (!v) return '请选择';
+        app.answers.wake = v; return null;
+      }
+    },
+    { id:'r1_04', ch:'第一章 · 日常', title:'孤独评分',
+      render() {
+        return `<h1 class="hero-title">过去一周，孤独感有多强？</h1>
+        <div class="slider-wrap">
+          <input type="range" id="sl-lonely" min="0" max="100" value="50">
+          <div class="slider-labels"><span>几乎无</span><span id="sl-val">50</span><span>吞没一切</span></div>
+        </div>`;
+      },
+      enter() {
+        const sl = $('sl-lonely');
+        sl.oninput = () => { $('sl-val').textContent = sl.value; };
+      },
+      validate() {
+        app.answers.lonely = $('sl-lonely').value;
+        return null;
+      }
+    },
+    { id:'r1_05', ch:'第一章 · 日常', title:'噪音偏好',
+      render() {
+        return `<h1 class="hero-title">你更能在哪种声音里集中注意力？</h1>
+        <div class="choice-row">
+          <button type="button" class="choice" data-v="rain">雨声</button>
+          <button type="button" class="choice" data-v="cafe">咖啡馆人声</button>
+          <button type="button" class="choice" data-v="silence">绝对安静</button>
+          <button type="button" class="choice" data-v="whisper">有人在你耳边轻声说话</button>
+        </div>`;
+      },
+      enter() { bindChoices(false); },
+      validate() {
+        const v = getSelected(); if (!v) return '请选择';
+        app.answers.noise = v;
+        if (v === 'whisper') setTimeout(() => tone(900, .15, 'triangle', .04), 400);
+        return null;
+      }
+    },
+    { id:'r1_06', ch:'第二章 · 连接', title:'回复速度',
+      render() {
+        return `<h1 class="hero-title">重要的人迟回消息，你会？</h1>
+        <div class="choice-grid">
+          <button type="button" class="choice" data-v="wait">等，也许忙</button>
+          <button type="button" class="choice" data-v="check">反复确认是否已读</button>
+          <button type="button" class="choice" data-v="story">脑补一整出剧情</button>
+          <button type="button" class="choice" data-v="call">直接电话 / 上门</button>
+        </div>`;
+      },
+      enter() { bindChoices(false); },
+      validate() {
+        const v = getSelected(); if (!v) return '请选择';
+        app.answers.reply = v; return null;
+      }
+    },
+    { id:'r1_07', ch:'第二章 · 连接', title:'占有',
+      render() {
+        return `<h1 class="hero-title">「你是我的」这句话，你的感受更接近？</h1>
+        <div class="choice-grid">
+          <button type="button" class="choice" data-v="warm">被在意的 warmth</button>
+          <button type="button" class="choice" data-v="chain">有点喘不过气的链</button>
+          <button type="button" class="choice" data-v="thrill">危险的心动</button>
+          <button type="button" class="choice" data-v="say">我也想对别人这样说</button>
+        </div>`;
+      },
+      enter() { bindChoices(false); },
+      validate() {
+        const v = getSelected(); if (!v) return '请选择';
+        app.answers.mine = v; return null;
+      }
+    },
+    { id:'r1_07b', ch:'第二章 · 连接', title:'距离',
+      render() {
+        return `<h1 class="hero-title">理想关系里，物理距离？</h1>
+        <div class="slider-wrap">
+          <input type="range" id="sl-dist" min="0" max="100" value="40">
+          <div class="slider-labels"><span>同城也要各自空间</span><span id="dist-val">40</span><span>同一房间才能安心</span></div>
+        </div>`;
+      },
+      enter() {
+        $('sl-dist').oninput = e => { $('dist-val').textContent = e.target.value; };
+      },
+      validate() {
+        app.answers.distance = $('sl-dist').value;
+        return null;
+      }
+    },
+    { id:'r1_08', ch:'第二章 · 连接', title:'抽牌',
+      render() {
+        return `<h1 class="hero-title">选一张牌 · 别问为什么</h1>
+        <p class="lead">直觉即可。选中后才会翻面。</p>
+        <div class="card-deck" id="deck">
+          ${['门','镜','线','巢','钥','空'].map((w,i)=>`<button type="button" class="tarot" data-v="${w}">?</button>`).join('')}
+        </div>`;
+      },
+      enter() {
+        stage.querySelectorAll('.tarot').forEach(card => {
+          card.onclick = () => {
+            stage.querySelectorAll('.tarot').forEach(c => c.classList.remove('flipped','on'));
+            card.classList.add('flipped','on');
+            card.textContent = card.dataset.v;
+            app.answers.tarot = card.dataset.v;
+            heartbeat();
+          };
+        });
+      },
+      validate() {
+        if (!app.answers.tarot) return '请选一张牌';
+        return null;
+      }
+    },
+    { id:'r1_09', ch:'第三章 · 假同步', title:'同步',
+      render() {
+        return `<h1 class="hero-title">正在写入临时缓冲…</h1>
+        <p class="lead" id="sync-txt"><span class="pulse-dot"></span>队列 0 / 9</p>
+        <div class="meter" style="height:6px;"><div id="sync-bar" style="width:0;height:100%;background:var(--brand);transition:width .2s;"></div></div>`;
+      },
+      enter() {
+        $('btn-next').classList.add('hidden');
+        let i = 0;
+        const iv = setInterval(() => {
+          i++;
+          $('sync-bar').style.width = (i/9*100)+'%';
+          $('sync-txt').innerHTML = `<span class="pulse-dot"></span>队列 ${i} / 9 · hash ${Math.random().toString(16).slice(2,8)}`;
+          if (i >= 9) {
+            clearInterval(iv);
+            $('sync-txt').textContent = '同步完成。下一章问题格式不变——但语境会变。';
+            $('btn-next').classList.remove('hidden');
+          }
+        }, 380);
+      },
+      validate() { return null; }
+    },
+    { id:'r1_10', ch:'第三章 · 倾斜', title:'被注视',
+      render() {
+        return `<h1 class="hero-title">${app.name}，你有没有感觉这页有人在读你的停顿？</h1>
+        <div class="choice-grid">
+          <button type="button" class="choice" data-v="n">没有，别吓人</button>
+          <button type="button" class="choice" data-v="y">有…像隔着屏幕</button>
+          <button type="button" class="choice" data-v="me">是你吗？出题的那个</button>
+        </div>`;
+      },
+      enter() {
+        document.body.style.setProperty('--brand', '#7a2038');
+        bindChoices(false);
+      },
+      validate() {
+        const v = getSelected(); if (!v) return '请选择';
+        app.answers.watched = v;
+        if (v === 'me') setHint('对方已读。');
+        return null;
+      }
+    },
+    { id:'r1_10b', ch:'第三章 · 倾斜', title:'红点',
+      render() {
+        return `<h1 class="hero-title">未读消息数字，对你意味着什么？</h1>
+        <div class="choice-grid">
+          <button type="button" class="choice" data-v="task">待办清单</button>
+          <button type="button" class="choice" data-v="love">被记得的证据</button>
+          <button type="button" class="choice" data-v="pressure">压力 · 必须清空</button>
+          <button type="button" class="choice" data-v="game">像游戏任务</button>
+        </div>`;
+      },
+      enter() { bindChoices(false); },
+      validate() {
+        const v = getSelected(); if (!v) return '请选择';
+        app.answers.badge = v; return null;
+      }
+    },
+    { id:'r1_11', ch:'第三章 · 倾斜', title:'权限',
+      render() {
+        return `<h1 class="hero-title">若绑定对象请求「随时知道你在哪」，你会？</h1>
+        <div class="choice-grid">
+          <button type="button" class="choice" data-v="no">拒绝</button>
+          <button type="button" class="choice" data-v="partial">部分时段可以</button>
+          <button type="button" class="choice" data-v="yes">可以 · 对等地也要对方的</button>
+          <button type="button" class="choice" data-v="only">只要对方 · 我不需要隐私</button>
+        </div>`;
+      },
+      enter() { bindChoices(false); },
+      validate() {
+        const v = getSelected(); if (!v) return '请选择';
+        app.answers.location = v; return null;
+      }
+    },
+    { id:'r1_12', ch:'第三章 · 倾斜', title:'离开',
+      render() {
+        return `<h1 class="hero-title">如果现在必须退出问卷，你会？</h1>
+        <div class="choice-grid">
+          <button type="button" class="choice" data-v="close">关页面，不再回来</button>
+          <button type="button" class="choice" data-v="later">先走，晚点继续</button>
+          <button type="button" class="choice" data-v="finish">做完，弄懂想干嘛</button>
+        </div>`;
+      },
+      enter() { bindChoices(false); },
+      validate() {
+        const v = getSelected(); if (!v) return '请选择';
+        if (v === 'close') {
+          modal('缓冲层拦截', `${app.name}，「不再回来」已写入尝试日志。<br>你可以关页面——<strong>档案会留在本机</strong>。`);
+          return '系统要求重选或选「做完」';
+        }
+        app.answers.leave = v; return null;
+      }
+    },
+    { id:'r1_12b', ch:'第三章 · 倾斜', title:'排序',
+      render() {
+        return `<h1 class="hero-title">拖动优先级 · 谁最不能失去？</h1>
+        <p class="lead">点击两项交换顺序（简化为点选交换）。</p>
+        <div class="choice-grid" id="rank-list">
+          <button type="button" class="choice" data-i="0" data-v="self">自己</button>
+          <button type="button" class="choice" data-i="1" data-v="partner">绑定对象</button>
+          <button type="button" class="choice" data-i="2" data-v="friend">朋友网</button>
+          <button type="button" class="choice" data-i="3" data-v="world">外部世界</button>
+        </div>
+        <p class="lead" style="font-size:.75rem;margin-top:8px;">当前顺序：<span id="rank-out">自己 → 绑定对象 → 朋友网 → 外部世界</span></p>`;
+      },
+      enter() {
+        app.rankOrder = ['self','partner','friend','world'];
+        let selIdx = null;
+        stage.querySelectorAll('#rank-list .choice').forEach(btn => {
+          btn.onclick = () => {
+            const i = +btn.dataset.i;
+            if (selIdx === null) { selIdx = i; btn.classList.add('on'); return; }
+            if (selIdx === i) { selIdx = null; btn.classList.remove('on'); return; }
+            const tmp = app.rankOrder[selIdx];
+            app.rankOrder[selIdx] = app.rankOrder[i];
+            app.rankOrder[i] = tmp;
+            stage.querySelectorAll('#rank-list .choice').forEach(b => b.classList.remove('on'));
+            selIdx = null;
+            const labels = { self:'自己', partner:'绑定对象', friend:'朋友网', world:'外部世界' };
+            $('rank-out').textContent = app.rankOrder.map(k => labels[k]).join(' → ');
+            app.answers.rank = app.rankOrder.slice();
+          };
+        });
+      },
+      validate() {
+        if (!app.answers.rank) app.answers.rank = app.rankOrder;
+        return null;
+      }
+    },
+    { id:'r1_13', ch:'第四章 · 镜像', title:'填空',
+      render() {
+        return `<h1 class="hero-title">完成句子（诚实或表演都行）</h1>
+        <p class="lead">「我最怕 ${app.name} 变成 ______ 的人」</p>
+        <textarea id="inp-fear" maxlength="120" placeholder="一个词或一句话"></textarea>`;
+      },
+      validate() {
+        const t = $('inp-fear').value.trim();
+        if (t.length < 2) return '写点什么';
+        app.answers.fearWord = t; return null;
+      }
+    },
+    { id:'r1_14', ch:'第四章 · 镜像', title:'多选阴影',
+      render() {
+        return `<h1 class="hero-title">哪些词让你不舒服地「被说中」？</h1>
+        <p class="lead">可多选。</p>
+        <div class="choice-grid">
+          <button type="button" class="choice" data-v="replace">可替换</button>
+          <button type="button" class="choice" data-v="need">被需要</button>
+          <button type="button" class="choice" data-v="delete">被忘记</button>
+          <button type="button" class="choice" data-v="split">被分割</button>
+          <button type="button" class="choice" data-v="merge">融为一体</button>
+        </div>`;
+      },
+      enter() { bindChoices(true); },
+      validate() {
+        const m = getMulti(); if (!m.length) return '至少选一项';
+        app.answers.shadow = m; return null;
+      }
+    },
+    { id:'r1_14b', ch:'第四章 · 镜像', title:'假摄像头',
+      render() {
+        return `<h1 class="hero-title">权限演示 · 可选</h1>
+        <p class="lead">本页<strong>不会</strong>调用真实摄像头。只模拟「若被看见」的 UI。</p>
+        <div style="aspect-ratio:4/3;background:#111;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#444;font-size:.8rem;margin:12px 0;" id="fake-cam">
+          信号未接入
+        </div>
+        <div class="choice-grid">
+          <button type="button" class="choice" data-v="on">模拟开启 · 屏幕边缘变亮</button>
+          <button type="button" class="choice" data-v="off">保持关闭</button>
+        </div>`;
+      },
+      enter() { bindChoices(false); },
+      validate() {
+        const v = getSelected(); if (!v) return '请选择';
+        app.answers.fakeCam = v;
+        if (v === 'on') {
+          $('fake-cam').innerHTML = `<span style="color:#faa;font-family:monospace;">REC ● ${app.name} · 本地模拟</span>`;
+          document.body.style.boxShadow = 'inset 0 0 80px rgba(196,30,58,.25)';
+          setTimeout(() => { document.body.style.boxShadow = ''; }, 2000);
+        }
+        return null;
+      }
+    },
+    { id:'r1_15', ch:'第四章 · 镜像', title:'承诺',
+      render() {
+        return `<h1 class="hero-title">写一句只对「观看者」说的话</h1>
+        <p class="lead">可以是承诺、挑衅，或空白意义上的谎言。我们会读时长，不读心。</p>
+        <textarea id="inp-vow" rows="4" maxlength="200"></textarea>`;
+      },
+      validate() {
+        app.answers.vow = $('inp-vow').value.trim();
+        if (app.answers.vow.length < 4) return '至少 4 个字';
+        return null;
+      }
+    },
+    { id:'r1_16', ch:'终章 · 筛选', title:'终问',
+      render() {
+        return `<h1 class="hero-title">最后一个问题</h1>
+        <div class="typewriter" id="tw"></div>
+        <div class="choice-grid hidden" id="final-choices" style="margin-top:20px;">
+          <button type="button" class="choice" data-v="a">我愿意被写入档案</button>
+          <button type="button" class="choice" data-v="b">我已经在里面了</button>
+        </div>`;
+      },
+      enter() {
+        $('btn-next').classList.add('hidden');
+        const lines = [
+          `${app.name}。`,
+          '用时数据一直在走。',
+          '你选的「线」与「巢」会留在背面。',
+          '这不是结束，是封存。',
+          '封存不等于闭环。',
+          '——你还差一步，才能看见「背面」。'
+        ];
+        let i = 0;
+        const tw = $('tw');
+        const run = () => {
+          if (i >= lines.length) {
+            $('final-choices').classList.remove('hidden');
+            $('btn-next').classList.remove('hidden');
+            $('btn-next').textContent = '封存档案';
+            bindChoices(false);
+            return;
+          }
+          tw.textContent = lines[i++];
+          heartbeat();
+          setTimeout(run, i === 5 ? 1400 : 850);
+        };
+        run();
+      },
+      validate() {
+        const v = getSelected(); if (!v) return '请选一项';
+        app.answers.final = v; return null;
+      }
+    }
+  ];
+
+  /* ========== 二周目（完全不同流程） ========== */
+  const RUN2 = [
+    { id:'r2_00', ch:'恢复协议 · 引导', title:'解密',
+      render() {
+        const a = app.archive;
+        return `<h1 class="hero-title">档案解封</h1>
+        <p class="lead decrypt-line" id="dec">████████████████</p>
+        <p class="lead" style="margin-top:16px;">一周目前缘：你曾留下编号 <strong>${a?.arcId || '???'}</strong> 的正面。现在读取背面。</p>`;
+      },
+      enter() {
+        $('btn-next').classList.add('hidden');
+        const name = app.archive?.name || app.name;
+        const target = `SUBJECT::${name}::LAYER-B`;
+        let i = 0;
+        const el = $('dec');
+        const iv = setInterval(() => {
+          el.textContent = target.slice(0, i) + '█'.repeat(Math.max(0, target.length - i));
+          i++;
+          tone(800 + i * 20, .02, 'square', .03);
+          if (i > target.length) {
+            clearInterval(iv);
+            el.textContent = target;
+            el.classList.remove('decrypt-line');
+            $('btn-next').classList.remove('hidden');
+          }
+        }, 45);
+      },
+      validate() { return null; }
+    },
+    { id:'r2_01', ch:'恢复协议 · 核验', title:'用时暗示',
+      render() {
+        const slow = app.archive?.timings?.slice().sort((a,b)=>b.ms-a.ms)[0];
+        return `<h1 class="hero-title">核验 · 迟疑点</h1>
+        <p class="lead">系统标记：你在「${slow?.title || '某题'}」停留 <strong>${slow ? (slow.ms/1000).toFixed(1)+'s' : '?'} </strong>——比 87% 的本地模拟样本更长。</p>
+        <p class="lead">当时你在怕，还是在想别的事？</p>
+        <div class="choice-grid">
+          <button type="button" class="choice" data-v="fear">怕</button>
+          <button type="button" class="choice" data-v="other">想别的</button>
+          <button type="button" class="choice" data-v="both">两者都是</button>
+          <button type="button" class="choice" data-v="deny">我不承认那是迟疑</button>
+        </div>`;
+      },
+      enter() { bindChoices(false); },
+      validate() {
+        const v = getSelected(); if (!v) return '请选择';
+        app.answers.verifySlow = v; return null;
+      }
+    },
+    { id:'r2_02', ch:'恢复协议 · 核验', title:'牌面',
+      render() {
+        const t = app.archive?.answers?.tarot || '?';
+        return `<h1 class="hero-title">你抽到的「${t}」</h1>
+        <p class="lead">一周目认为那是随机的。背面注释：牌面与第 ${app.archive?.timings?.length || 0} 次心跳同步。</p>
+        <div class="choice-grid">
+          <button type="button" class="choice" data-v="accept">接受解释</button>
+          <button type="button" class="choice" data-v="reject">我选的是巧合</button>
+          <button type="button" class="choice" data-v="reread">我要重新选牌</button>
+        </div>`;
+      },
+      enter() { bindChoices(false); },
+      validate() {
+        const v = getSelected(); if (!v) return '请选择';
+        if (v === 'reread') {
+          scare(app.name);
+          return '牌已烧录 · 不可重选';
+        }
+        app.answers.tarot2 = v; return null;
+      }
+    },
+    { id:'r2_03', ch:'恢复协议 · 对质', title:'誓言',
+      render() {
+        return `<h1 class="hero-title">你曾写下：</h1>
+        <blockquote style="border-left:3px solid var(--brand);padding:12px;margin:12px 0;font-style:italic;">「${app.archive?.answers?.vow || '……'}」</blockquote>
+        <p class="lead">还是对观看者说的吗？</p>
+        <div class="choice-grid">
+          <button type="button" class="choice" data-v="yes">是 · 包括现在</button>
+          <button type="button" class="choice" data-v="past">只是一周目的我</button>
+          <button type="button" class="choice" data-v="you">是对「你」——打开二周目的这个人</button>
+        </div>`;
+      },
+      enter() { bindChoices(false); },
+      validate() {
+        const v = getSelected(); if (!v) return '请选择';
+        app.answers.vow2 = v; return null;
+      }
+    },
+    { id:'r2_04', ch:'恢复协议 · 对质', title:'占有复检',
+      render() {
+        const m = app.archive?.answers?.mine;
+        const map = { warm:' warmth ', chain:'链', thrill:'心动', say:'也想说' };
+        return `<h1 class="hero-title">关于「你是我的」</h1>
+        <p class="lead">一周目：${map[m] || m}。若绑定程序执行，你现在的优先级？</p>
+        <input type="range" id="sl-bind" min="0" max="100" value="72">
+        <div class="slider-labels"><span>终止绑定</span><span id="bind-val">72%</span><span>完全接受</span></div>`;
+      },
+      enter() {
+        $('sl-bind').oninput = e => { $('bind-val').textContent = e.target.value + '%'; };
+      },
+      validate() {
+        app.answers.bindLevel = $('sl-bind').value;
+        if (+app.answers.bindLevel > 88) heartbeat();
+        return null;
+      }
+    },
+    { id:'r2_04b', ch:'恢复协议 · 对质', title:'排序回放',
+      render() {
+        const labels = { self:'自己', partner:'绑定对象', friend:'朋友网', world:'外部世界' };
+        const r = (app.archive?.answers?.rank || ['self','partner','friend','world']).map(k => labels[k] || k).join(' → ');
+        return `<h1 class="hero-title">一周目的优先级</h1>
+        <p class="lead">${r}</p>
+        <p class="lead">把「绑定对象」放在第一位的人，在二周目会被问更多问题。你${app.archive?.answers?.rank?.[0] === 'partner' ? '正是' : '不是'}这一类。</p>
+        <div class="choice-grid">
+          <button type="button" class="choice" data-v="change">我想改顺序</button>
+          <button type="button" class="choice" data-v="keep">维持一周目选择</button>
+        </div>`;
+      },
+      enter() { bindChoices(false); },
+      validate() {
+        const v = getSelected(); if (!v) return '请选择';
+        app.answers.rank2 = v;
+        if (v === 'change') modal('背面规则', '顺序已烧录在一周目。你可以在心里改，档案不能。');
+        return null;
+      }
+    },
+    { id:'r2_05', ch:'恢复协议 · 侵入', title:'设备',
+      render() {
+        return `<h1 class="hero-title">环境确认</h1>
+        <p class="lead"><span class="pulse-dot" style="background:#c41e3a"></span> 窗口 ${window.innerWidth}×${window.innerHeight} · 语言 ${navigator.language} · ${new Date().toLocaleString()}</p>
+        <p class="lead">与一周目相比，你换设备了吗？</p>
+        <div class="choice-grid">
+          <button type="button" class="choice" data-v="same">同一台</button>
+          <button type="button" class="choice" data-v="new">换了</button>
+          <button type="button" class="choice" data-v="who">你怎么知道有一周目</button>
+        </div>`;
+      },
+      enter() { bindChoices(false); },
+      validate() {
+        const v = getSelected(); if (!v) return '请选择';
+        if (v === 'who') setHint('因为是你再次打开了同一个文件。');
+        app.answers.device2 = v; return null;
+      }
+    },
+    { id:'r2_06', ch:'恢复协议 · 侵入', title:'模拟对话',
+      render() {
+        return `<h1 class="hero-title">观看者请求发言</h1>
+        <div id="chat" style="font-size:.82rem;line-height:1.8;max-height:200px;overflow:auto;border:1px solid var(--line);padding:12px;border-radius:10px;"></div>
+        <div class="choice-grid" style="margin-top:12px;">
+          <button type="button" class="choice" data-v="ok">回应</button>
+          <button type="button" class="choice" data-v="mute">保持沉默</button>
+        </div>`;
+      },
+      enter() {
+        const chat = $('chat');
+        const msgs = [
+          ['观看者', `${app.name}，背面比正面诚实。`],
+          ['观看者', `你在「${app.archive?.answers?.fearWord || '…'}」那题暴露了。`],
+          ['系统', '记录：用户呼吸可能加快。'],
+          ['观看者', '还差一点。我会给你看全部用时。']
+        ];
+        let i = 0;
+        const tick = () => {
+          if (i >= msgs.length) return;
+          const [who, text] = msgs[i++];
+          chat.innerHTML += `<div><strong>${who}:</strong> ${text}</div>`;
+          tone(500, .04, 'sine', .05);
+          setTimeout(tick, 900);
+        };
+        tick();
+        bindChoices(false);
+      },
+      validate() {
+        const v = getSelected(); if (!v) return '请选择';
+        app.answers.chat = v;
+        if (v === 'mute') setTimeout(() => scare(app.name), 800);
+        return null;
+      }
+    },
+    { id:'r2_07', ch:'恢复协议 · 暴露', title:'全表',
+      render() {
+        return `<h1 class="hero-title">全量用时报告 · 解封</h1>
+        <p class="lead">一周目承诺：过程不展示。二周目承诺：全部摊开。</p>
+        <div id="time-mount"></div>
+        <p class="lead" style="margin-top:14px;font-size:.78rem;" id="time-analysis"></p>`;
+      },
+      enter() {
+        $('btn-next').textContent = '签署背面';
+        mountTimeTable('time-mount', app.archive?.timings || [], true);
+        const analysis = analyzeTimings(app.archive?.timings || []);
+        $('time-analysis').textContent = analysis;
+      },
+      validate() { return null; }
+    },
+    { id:'r2_08', ch:'恢复协议 · 闭环', title:'终局',
+      render() {
+        return `<h1 class="hero-title">绑定率 ${app.answers.bindLevel || 72}%</h1>
+        <p class="lead typewriter" id="end-tw"></p>
+        <div class="choice-grid hidden" id="end-opts" style="margin-top:18px;">
+          <button type="button" class="choice" data-v="loop">封存 · 不再打开</button>
+          <button type="button" class="choice" data-v="delete">删除本地档案</button>
+        </div>`;
+      },
+      enter() {
+        $('btn-next').classList.add('hidden');
+        const lines = [
+          `${app.name}，二周目不是重复，是验尸报告式的温柔。`,
+          '你的迟疑曲线已写入 ARC 背面。',
+          '若删除档案，观看者也会「忘记」正面。',
+          '……你舍得吗？'
+        ];
+        let i = 0;
+        const tw = $('end-tw');
+        const go = () => {
+          if (i >= lines.length) {
+            $('end-opts').classList.remove('hidden');
+            $('btn-next').classList.remove('hidden');
+            $('btn-next').textContent = '执行选择';
+            bindChoices(false);
+            return;
+          }
+          tw.textContent = lines[i++];
+          setTimeout(go, 1000);
+        };
+        go();
+      },
+      validate() {
+        const v = getSelected(); if (!v) return '请选择';
+        app.answers.end2 = v;
+        if (v === 'delete') {
+          localStorage.removeItem(ARCHIVE_KEY);
+          modal('档案', '已清除。刷新后将从零开始——就像从未被看过。');
+        }
+        return null;
+      }
+    }
+  ];
+
+  function formatMs(ms) {
+    if (ms < 1000) return ms + ' ms';
+    const s = ms / 1000;
+    if (s < 60) return s.toFixed(1) + ' s';
+    const m = Math.floor(s / 60);
+    return m + 'm ' + (s % 60).toFixed(0) + 's';
+  }
+
+  function analyzeTimings(timings) {
+    if (!timings.length) return '';
+    const sorted = timings.slice().sort((a,b)=>b.ms-a.ms);
+    const slow = sorted[0];
+    const fast = sorted[sorted.length-1];
+    const total = timings.reduce((s,t)=>s+t.ms,0);
+    const avg = total / timings.length;
+    let note = `共 ${timings.length} 段记录，总停留 ${formatMs(total)}，均值 ${formatMs(Math.round(avg))}。`;
+    note += ` 最长：「${slow.title}」${formatMs(slow.ms)}——`;
+    if (slow.ms > avg * 2) note += '典型的防御性停顿。';
+    else note += '略长，可能在阅读或走神。';
+    note += ` 最短：「${fast.title}」${formatMs(fast.ms)}。`;
+    return note;
+  }
+
+  function mountTimeTable(elId, timings, unlock) {
+    const el = $(elId);
+    if (!timings.length) {
+      el.innerHTML = '<p class="lead">无记录</p>';
+      return;
+    }
+    const avg = timings.reduce((s,t)=>s+t.ms,0) / timings.length;
+    let html = `<table class="time-table ${unlock ? '' : ''}"><thead><tr><th>#</th><th>章节</th><th>题</th><th>用时</th></tr></thead><tbody>`;
+    timings.forEach((t, i) => {
+      let cls = '';
+      if (t.ms > avg * 1.8) cls = 'slow';
+      else if (t.ms < avg * 0.45) cls = 'fast';
+      html += `<tr class="${cls}"><td>${i+1}</td><td>${t.chapter}</td><td>${t.title}</td><td>${formatMs(t.ms)}</td></tr>`;
+    });
+    html += '</tbody></table>';
+    el.innerHTML = html;
+  }
+
+  function getFlow() {
+    return app.mode === 'run2' ? RUN2 : RUN1;
+  }
+
+  function render() {
+    const flow = getFlow();
+    const q = flow[app.step];
+    if (!q) return finish();
+
+    endQuestionTimer();
+    startQuestionTimer(q.id, q.ch, q.title);
+
+    $('chapter').textContent = q.ch;
+    stage.innerHTML = q.render();
+    setHint('');
+    $('meter-fill').style.width = ((app.step + 1) / flow.length * 100) + '%';
+    $('btn-prev').classList.toggle('hidden', app.step === 0 || app.mode === 'run2' && app.step <= 1);
+    $('btn-next').textContent = app.step === flow.length - 1 ? '完成' : '继续';
+    $('btn-next').classList.remove('hidden');
+
+    if (q.enter) q.enter();
+
+    if (app.mode === 'run1' && app.step === 10 && Math.random() < 0.45) {
+      setTimeout(() => scare(app.name), 5000);
+    }
+  }
+
+  function finishRun1() {
+    endQuestionTimer();
+    const arcId = 'ARC-' + Math.random().toString(36).slice(2, 8).toUpperCase();
+    const payload = {
+      arcId,
+      name: app.name,
+      answers: app.answers,
+      timings: app.timings,
+      completedAt: Date.now(),
+      run1Complete: true,
+      run2Complete: false
+    };
+    saveArchive(payload);
+    app.archive = payload;
+
+    panel.classList.add('hidden');
+    $('finale').classList.add('on');
+    document.body.classList.add('run1-finale');
+
+    const totalMs = app.timings.reduce((s,t)=>s+t.ms,0);
+    const teaser = analyzeTimings(app.timings);
+    const slowest = app.timings.slice().sort((a,b)=>b.ms-a.ms)[0];
+
+    $('finale').innerHTML = `
+      <div class="panel">
+        <p class="chapter">一周目 · 封存报告</p>
+        <h1 class="hero-title">${app.name}，正面已写入。</h1>
+        <div class="archive-box">
+          <div>档案编号：<strong>${arcId}</strong></div>
+          <div>状态：<span style="color:#c9a227;">未闭环 · UNCLOSED</span></div>
+          <div>本地键名：${ARCHIVE_KEY}</div>
+          <div>段记录：${app.timings.length} 题 · 合计 ${formatMs(totalMs)}</div>
+        </div>
+        <p class="lead">你要求的规则已遵守：过程未展示计时。但数据一直在。</p>
+        <p class="lead"><strong>预览（模糊）：</strong>${teaser.split('。')[0]}。</p>
+        <div id="blur-table"></div>
+        <p class="lead" style="margin-top:18px;font-size:.82rem;">
+          最长停顿出现在「<em>${slowest?.title || '—'}</em>」——背面会解释这意味着什么。
+        </p>
+        <div class="teaser-ring">再次打开<br>同一网页<br>恢复协议</div>
+        <h2 class="hero-title" style="font-size:1.1rem;margin-top:8px;">这不是「再玩一次」。</h2>
+        <p class="lead">
+          请<strong>关闭此标签页</strong>，然后再次打开<strong>本 HTML 文件</strong>（同一浏览器、同一设备）。<br>
+          系统将加载 <strong>二周目 · 恢复协议</strong>：不同题目、不同界面、同一档案的<strong>背面</strong>——并在此解锁<strong>完整用时表</strong>。
+        </p>
+        <p class="lead" style="color:var(--brand);font-family:'IBM Plex Mono',monospace;font-size:.78rem;">
+          ▸ 若你从未关闭就刷新：也能进入二周目，但「离开后再回来」更贴合叙事。<br>
+          ▸ 发给朋友的副本不会显示你的档案，他们有自己的一周目。
+        </p>
+        <button type="button" class="btn btn-soft" style="width:100%;margin-top:16px;" id="btn-peek">仅偷看 0.5 秒完整用时（会破坏惊喜）</button>
+      </div>`;
+
+    mountTimeTable('blur-table', app.timings, false);
+    $('btn-peek').onclick = () => {
+      const tbl = $('blur-table').querySelector('.time-table');
+      if (tbl) {
+        tbl.classList.add('unlocked');
+        document.body.classList.remove('run1-finale');
+        setTimeout(() => {
+          tbl.classList.remove('unlocked');
+          document.body.classList.add('run1-finale');
+        }, 500);
+      }
+    };
+  }
+
+  function finishRun2() {
+    endQuestionTimer();
+    const arch = loadArchive() || app.archive;
+    if (arch && app.answers.end2 !== 'delete') {
+      arch.run2Complete = true;
+      arch.run2At = Date.now();
+      arch.run2Answers = app.answers;
+      saveArchive(arch);
+    }
+
+    panel.classList.add('hidden');
+    $('finale').classList.add('on');
+    $('finale').innerHTML = `
+      <div class="panel">
+        <p class="chapter">二周目 · 闭环</p>
+        <h1 class="hero-title">背面已签署。</h1>
+        <p class="lead">${app.name}，你看过自己的迟疑曲线了。观看者没有更多章节。</p>
+        <div class="archive-box">
+          ARC ${arch?.arcId || '—'} · RUN-2 COMPLETE<br>
+          绑定意向：${app.answers.bindLevel || '?'}%<br>
+          档案仍可本地保留，供你随时打开回味——或删除键 ${ARCHIVE_KEY} 彻底归零。
+        </div>
+        <div id="final-times"></div>
+        <p class="lead" style="margin-top:20px;font-size:.75rem;color:var(--muted);">
+          Meta：创意来自双结构叙事——一周目收集与隐藏，二周目用同一数据做对质与释出。无服务器，全靠 localStorage 与你的两次访问。
+        </p>
+      </div>`;
+    mountTimeTable('final-times', arch?.timings || [], true);
+  }
+
+  function finish() {
+    if (app.mode === 'run1') finishRun1();
+    else finishRun2();
+  }
+
+  function tickClock() {
+    if (!app.globalStart) return;
+    const s = Math.floor((Date.now() - app.globalStart) / 1000);
+    const m = String(Math.floor(s/60)).padStart(2,'0');
+    const ss = String(s%60).padStart(2,'0');
+    $('clock-label').textContent = m + ':' + ss;
+  }
+
+  function setupIdleScare() {
+    clearTimeout(app.idleScare);
+    if (app.mode !== 'run1') return;
+    app.idleScare = setTimeout(() => {
+      if (app.step >= 8 && app.step <= 14) {
+        tone(200, .3, 'sawtooth', .06);
+        if (Math.random() < 0.35) scare(app.name);
+      }
+    }, 15000);
+  }
+
+  document.addEventListener('click', setupIdleScare, { passive: true });
+  document.addEventListener('touchstart', setupIdleScare, { passive: true });
+
+  $('btn-next').onclick = async () => {
+    initAudio();
+    const flow = getFlow();
+    const q = flow[app.step];
+    if (q.validate) {
+      const err = q.validate();
+      if (err) {
+        setHint(err);
+        panel.style.transform = 'translateX(4px)';
+        setTimeout(() => panel.style.transform = '', 120);
+        return;
+      }
+    }
+    app.step++;
+    if (app.step === 9 && app.mode === 'run1') {
+      if (Math.random() < 0.5) setTimeout(() => scare(app.name), 400);
+    }
+    render();
+  };
+
+  $('btn-prev').onclick = () => {
+    if (app.step > 0) {
+      endQuestionTimer();
+      app.timings.pop();
+      app.step--;
+      render();
+    }
+  };
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden && app.mode === 'run1' && app.step > 5) {
+      modal('会话挂起', `${app.name || '受访者'} 试图切走。<br>用时仍在累计。`);
+    }
+  });
+
+  function initRun1() {
+    app.mode = 'run1';
+    $('run-label').textContent = 'RUN-1 · 正面';
+    $('splash-title').textContent = '认知绑定 · 深度问卷';
+    $('splash-lead').innerHTML = '学术合作机构匿名调研。约 15–25 分钟。<br>请一次性完成，中途离开也会留下痕迹。';
+    $('splash-foot').textContent = 'SESSION ' + Math.random().toString(16).slice(2, 10).toUpperCase();
+  }
+
+  function initRun2(arch) {
+    app.mode = 'run2';
+    app.name = arch.name || '';
+    app.archive = arch;
+    document.body.classList.add('run2');
+    $('run-label').textContent = 'RUN-2 · 恢复协议';
+    $('splash-badge').textContent = 'RECOVERY PROTOCOL · LAYER B';
+    $('splash-title').textContent = '档案背面 · 已检测到未闭环';
+    $('splash-lead').innerHTML = `${arch.name}，编号 <strong>${arch.arcId}</strong> 的一周目已完成。<br>这不是重做问卷，是<strong>核验、对质、释出用时</strong>。`;
+    $('splash-warn').innerHTML = '界面与题序与一周目不同。建议仍佩戴耳机。<br>你将看到<strong>全部做题时长</strong>。';
+    $('splash-foot').textContent = '封存于 ' + new Date(arch.completedAt).toLocaleString();
+    $('btn-enter').textContent = '解封背面';
+  }
+
+  function boot() {
+    const arch = loadArchive();
+    if (arch?.run1Complete && !arch?.run2Complete) {
+      initRun2(arch);
+    } else if (arch?.run2Complete) {
+      initRun2(arch);
+      $('splash-lead').innerHTML += '<br><span style="opacity:.7">（二周目已完成 · 可进入复盘模式）</span>';
+    } else {
+      initRun1();
+    }
+
+    $('btn-enter').onclick = () => {
+      initAudio();
+      $('splash').classList.remove('on');
+      $('root').classList.remove('hidden');
+      app.globalStart = Date.now();
+      setInterval(tickClock, 1000);
+      app.step = 0;
+      app.timings = app.mode === 'run2' ? [] : [];
+      render();
+    };
+  }
+
+  console.log('%c认知绑定', 'color:#c41e3a;font-size:18px;');
+  console.log('%c二周目：关闭页面后再次打开同一文件。', 'color:#666;');
+
+  boot();
+})();
+</script>
+</body>
+</html>
